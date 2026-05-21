@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VeraHire — Candidate Fraud Screener</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0f14;--surface:#151820;--surface2:#1c202e;--surface3:#222638;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#e8ff47;--accent2:#ff4d4d;--accent3:#4daaff;--text:#f0f2f8;--muted:#6b7280;--green:#22c55e;--amber:#f59e0b;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;}
+
+/* ── LOGIN SCREEN ── */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px;}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:44px 40px;width:100%;max-width:400px;text-align:center;}
+.login-logo{width:52px;height:52px;background:var(--accent);border-radius:13px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.login-logo i{color:#0d0f14;font-size:26px;}
+.login-title{font-size:26px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:28px;line-height:1.5;}
+.login-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--text);font-family:'Syne',sans-serif;font-size:15px;outline:none;text-align:center;letter-spacing:.15em;transition:border-color .2s;margin-bottom:14px;}
+.login-input:focus{border-color:rgba(232,255,71,0.5);}
+.login-input::placeholder{letter-spacing:.05em;color:var(--muted);}
+.login-btn{width:100%;background:var(--accent);color:#0d0f14;border:none;border-radius:10px;padding:13px;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.login-btn:hover{opacity:.9;}
+.login-error{color:var(--accent2);font-size:12px;margin-top:10px;display:none;font-family:'IBM Plex Mono',monospace;}
+.login-hint{font-size:11px;color:var(--muted);margin-top:20px;line-height:1.6;border-top:1px solid var(--border);padding-top:16px;}
+
+/* ── APP SHELL ── */
+.app-wrap{display:none;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:13px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:800;letter-spacing:-.02em;}
+.logo-dot{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.logo-dot i{color:#0d0f14;font-size:15px;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.badge{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 9px;border-radius:20px;}
+.logout-btn{background:none;border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:12px;font-family:'Syne',sans-serif;font-weight:600;padding:5px 11px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.logout-btn:hover{border-color:var(--border2);color:var(--text);}
+.main{display:flex;min-height:calc(100vh - 55px);}
+.sidebar{width:210px;background:var(--surface);border-right:1px solid var(--border);padding:20px 12px;flex-shrink:0;}
+.nav-label{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;padding-left:8px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;font-family:'Syne',sans-serif;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(232,255,71,0.1);color:var(--accent);}
+.nav-item i{font-size:15px;}
+.sidebar-note{margin-top:24px;border-top:1px solid var(--border);padding-top:18px;font-size:11px;color:var(--muted);padding-left:4px;line-height:1.7;}
+.content{flex:1;padding:24px 28px;overflow-y:auto;max-width:900px;}
+.screen{display:none;}.screen.active{display:block;}
+.screen-title{font-size:24px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px;}
+.screen-sub{color:var(--muted);font-size:13px;margin-bottom:22px;line-height:1.6;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px;}
+.card-title{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.card-title i{font-size:13px;}
+.input-field{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;transition:border-color .15s;}
+.input-field:focus{border-color:rgba(232,255,71,0.4);}
+.input-field::placeholder{color:var(--muted);}
+textarea.input-field{resize:vertical;min-height:120px;line-height:1.6;}
+select.input-field{cursor:pointer;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-group{margin-bottom:12px;}
+.field-label{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.06em;margin-bottom:5px;display:block;}
+.tip{background:rgba(77,170,255,0.07);border:1px solid rgba(77,170,255,0.2);border-radius:9px;padding:11px 14px;font-size:12px;color:rgba(77,170,255,0.85);line-height:1.6;margin-bottom:14px;display:flex;gap:9px;align-items:flex-start;}
+.tip i{font-size:14px;flex-shrink:0;margin-top:1px;}
+.warn{background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.25);border-radius:9px;padding:11px 14px;font-size:12px;color:rgba(245,158,11,0.9);line-height:1.6;margin-bottom:14px;display:flex;gap:9px;align-items:flex-start;}
+.warn i{font-size:14px;flex-shrink:0;margin-top:1px;}
+.dropzone{border:2px dashed rgba(232,255,71,0.2);border-radius:11px;padding:24px 18px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(232,255,71,0.02);position:relative;}
+.dropzone:hover{border-color:rgba(232,255,71,0.5);background:rgba(232,255,71,0.04);}
+.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.dz-icon{font-size:26px;color:var(--accent);margin-bottom:7px;}
+.dz-title{font-size:13px;font-weight:700;margin-bottom:2px;}
+.dz-sub{font-size:11px;color:var(--muted);}
+.preview-strip{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.preview-thumb{width:66px;height:66px;border-radius:8px;object-fit:cover;border:1px solid var(--border2);}
+.preview-doc{width:66px;height:66px;border-radius:8px;background:var(--surface2);border:1px solid var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;gap:3px;}
+.preview-doc i{font-size:18px;color:var(--accent3);}
+.btn-primary{width:100%;background:var(--accent);color:#0d0f14;border:none;border-radius:9px;padding:13px 18px;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:opacity .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-primary:hover{opacity:.9;}
+.btn-primary:active{transform:scale(.99);}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;}
+.btn-sm{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-sm:hover{border-color:var(--border2);}
+.action-row{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap;}
+.spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:18px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 20px;text-align:center;}
+.loading-steps{list-style:none;}
+.loading-steps li{font-size:12px;color:var(--muted);padding:4px 0;font-family:'IBM Plex Mono',monospace;transition:color .3s;}
+.loading-steps li.done{color:var(--green);}
+.loading-steps li.active{color:var(--accent);}
+.result-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:14px;}
+.cand-name{font-size:22px;font-weight:800;letter-spacing:-.02em;}
+.cand-meta{font-size:12px;color:var(--muted);margin-top:3px;}
+.risk-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:30px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.04em;}
+.risk-high{background:rgba(255,77,77,0.12);color:var(--accent2);border:1px solid rgba(255,77,77,0.3);}
+.risk-medium{background:rgba(245,158,11,0.12);color:var(--amber);border:1px solid rgba(245,158,11,0.3);}
+.risk-low{background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+.score-ring{width:84px;height:84px;position:relative;flex-shrink:0;}
+.score-ring svg{transform:rotate(-90deg);}
+.score-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;font-weight:800;}
+.dims-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:16px 0;}
+.dim-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px;}
+.dim-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+.dim-title{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:5px;}
+.dim-score{font-size:18px;font-weight:800;}
+.dim-score.red{color:var(--accent2);}.dim-score.amber{color:var(--amber);}.dim-score.green{color:var(--green);}
+.prog-wrap{height:4px;background:var(--surface2);border-radius:2px;margin-bottom:9px;}
+.prog-bar{height:100%;border-radius:2px;transition:width .6s ease;}
+.flag-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:7px;background:var(--surface2);margin-bottom:6px;font-size:12px;line-height:1.5;}
+.flag-dot{width:6px;height:6px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.flag-dot.red{background:var(--accent2);}.flag-dot.amber{background:var(--amber);}.flag-dot.green{background:var(--green);}
+.dim-notes{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6;}
+.rec-box{background:rgba(232,255,71,0.04);border:1px solid rgba(232,255,71,0.18);border-radius:12px;padding:16px;margin-bottom:14px;}
+.rec-title{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.rec-list{list-style:none;}
+.rec-list li{font-size:12px;padding:7px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;line-height:1.55;}
+.rec-list li:last-child{border-bottom:none;}
+.rec-list li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:1px;}
+.id-result-box{border-radius:12px;padding:18px;margin-bottom:14px;}
+.id-result-box.legit{background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.25);}
+.id-result-box.suspect{background:rgba(255,77,77,0.07);border:1px solid rgba(255,77,77,0.25);}
+.id-result-box.review{background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.25);}
+.verdict-title{font-size:17px;font-weight:800;margin-bottom:5px;display:flex;align-items:center;gap:7px;}
+.q-block{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:15px;margin-bottom:10px;}
+.q-cat{font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.q-item{padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.6;display:flex;gap:10px;align-items:flex-start;}
+.q-item:last-child{border-bottom:none;padding-bottom:0;}
+.q-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);flex-shrink:0;margin-top:2px;min-width:18px;}
+.history-item{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .15s;margin-bottom:8px;}
+.history-item:hover{border-color:var(--border2);}
+.hi-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.hi-meta{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted);}
+.empty-state i{font-size:36px;margin-bottom:10px;display:block;}
+.chip-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
+.chip{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--muted);cursor:pointer;transition:all .15s;}
+.chip:hover{border-color:rgba(232,255,71,0.4);color:var(--accent);}
+.chip.active{background:rgba(232,255,71,0.1);border-color:rgba(232,255,71,0.4);color:var(--accent);}
+
+/* ── HOW TO USE ── */
+.guide-step{display:flex;gap:16px;margin-bottom:24px;align-items:flex-start;}
+.step-num{width:32px;height:32px;border-radius:50%;background:rgba(232,255,71,0.15);border:1px solid rgba(232,255,71,0.3);color:var(--accent);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.step-body{}
+.step-title{font-size:15px;font-weight:700;margin-bottom:4px;}
+.step-desc{font-size:13px;color:var(--muted);line-height:1.7;}
+.step-desc strong{color:var(--text);}
+.use-case-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
+.use-case-card{background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:16px;}
+.uc-icon{font-size:22px;color:var(--accent);margin-bottom:8px;}
+.uc-title{font-size:13px;font-weight:700;margin-bottom:5px;}
+.uc-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+.signal-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;}
+.signal-table th{text-align:left;padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--border);}
+.signal-table td{padding:9px 12px;border-bottom:1px solid var(--border);line-height:1.5;vertical-align:top;}
+.signal-table tr:last-child td{border-bottom:none;}
+.signal-table td:first-child{font-weight:700;white-space:nowrap;color:var(--accent3);}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════ -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-box">
+    <div class="login-logo"><i class="ti ti-shield-check"></i></div>
+    <div class="login-title">VeraHire</div>
+    <div class="login-sub">AI-powered candidate fraud screener<br>by Radhika Pothuraju</div>
+    <input class="login-input" id="pwd-input" type="password" placeholder="Enter your password"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">
+      <i class="ti ti-lock-open"></i> Unlock VeraHire
+    </button>
+    <div class="login-error" id="login-error"><i class="ti ti-alert-circle"></i> Incorrect password. Try again.</div>
+    <div class="login-hint">
+      This tool is for authorized use only.<br>
+      Contact the owner for access.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     APP
+══════════════════════════════════ -->
+<div class="app-wrap" id="app-wrap">
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-dot"><i class="ti ti-shield-check"></i></div>
+      VeraHire
+      <span style="font-size:11px;color:var(--muted);font-weight:400;margin-left:2px;">verify before you hire</span>
+    </div>
+    <div class="topbar-right">
+      <span class="badge">● AI POWERED</span>
+      <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout"></i> Lock</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="nav-label">Tools</div>
+      <button class="nav-item active" data-screen="screen" onclick="nav('screen')"><i class="ti ti-scan"></i> Screen Candidate</button>
+      <button class="nav-item" data-screen="id" onclick="nav('id')"><i class="ti ti-id"></i> Verify ID / Visa</button>
+      <button class="nav-item" data-screen="questions" onclick="nav('questions')"><i class="ti ti-messages"></i> Interview Questions</button>
+      <button class="nav-item" data-screen="history" onclick="nav('history')"><i class="ti ti-history"></i> History</button>
+      <div class="nav-label" style="margin-top:20px;">Help</div>
+      <button class="nav-item" data-screen="guide" onclick="nav('guide')"><i class="ti ti-book"></i> How to Use</button>
+      <div class="sidebar-note">
+        Built from 10+ years of recruiting experience. Every fraud signal here has been seen in the field.
+        <br><br>
+        <span style="color:var(--accent);font-weight:700;">VeraHire</span> — verify before you hire.
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ════════════════ SCREEN CANDIDATE ════════════════ -->
+      <div class="screen active" id="screen-screen">
+        <div class="screen-title">Screen a candidate</div>
+        <div class="screen-sub">Paste resume + job description. AI checks 10 fraud dimensions and gives you specific interview probes to follow up with.</div>
+        <div class="tip"><i class="ti ti-bulb"></i> Always paste the job description — it's the #1 way to catch resumes written to match the posting rather than the person's real experience.</div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-user"></i> Candidate basics</div>
+          <div class="two-col">
+            <div class="form-group" style="margin-bottom:0">
+              <span class="field-label">CANDIDATE NAME</span>
+              <input class="input-field" id="cand-name" placeholder="e.g. John Smith" type="text">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <span class="field-label">LINKEDIN URL (OPTIONAL)</span>
+              <input class="input-field" id="linkedin-url" placeholder="linkedin.com/in/…" type="text">
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-file-text"></i> Resume text *</div>
+          <textarea class="input-field" id="resume-text" placeholder="Paste full resume — work history, skills, education, certifications…" style="min-height:150px;"></textarea>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-briefcase"></i> Job description (highly recommended)</div>
+          <textarea class="input-field" id="jd-text" placeholder="Paste the job description — AI will detect if the resume was written to match it…" style="min-height:90px;"></textarea>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-toggle-right"></i> Fraud signals to check</div>
+          <div class="chip-row">
+            <div class="chip active" data-signal="jd_fabrication">JD Fabrication</div>
+            <div class="chip active" data-signal="proxy_risk">Proxy Interview</div>
+            <div class="chip active" data-signal="ai_resume">AI / Copied Resume</div>
+            <div class="chip active" data-signal="experience_fake">Fake Experience</div>
+            <div class="chip active" data-signal="visa_mismatch">Visa Mismatch</div>
+            <div class="chip active" data-signal="job_hopping">Job-Hop Pattern</div>
+            <div class="chip active" data-signal="skills_timeline">Skills Timeline</div>
+            <div class="chip active" data-signal="location_mismatch">Location Mismatch</div>
+            <div class="chip active" data-signal="body_shop">Body Shop / Vendor</div>
+            <div class="chip active" data-signal="salary_mismatch">Rate vs Exp</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;">Click any signal to toggle it on/off</div>
+        </div>
+        <button class="btn-primary" onclick="runAnalysis()">
+          <i class="ti ti-shield-search"></i> Run Full Fraud Screen
+        </button>
+      </div>
+
+      <!-- LOADING -->
+      <div class="screen" id="screen-loading">
+        <div class="loading-wrap">
+          <div class="spinner"></div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:14px;">Analyzing candidate…</div>
+          <ul class="loading-steps" id="ls">
+            <li id="ls1">Checking resume structure and language patterns</li>
+            <li id="ls2">Scanning for AI-generated content signals</li>
+            <li id="ls3">Analyzing experience timeline consistency</li>
+            <li id="ls4">Detecting JD fabrication and tailoring</li>
+            <li id="ls5">Assessing proxy interview risk factors</li>
+            <li id="ls6">Checking job-hop and body shop signals</li>
+            <li id="ls7">Compiling full risk report…</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="screen" id="screen-result">
+        <div class="result-top">
+          <div>
+            <div class="cand-name" id="res-name">—</div>
+            <div class="cand-meta" id="res-meta">—</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div class="score-ring">
+              <svg width="84" height="84" viewBox="0 0 84 84">
+                <circle cx="42" cy="42" r="35" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="7"/>
+                <circle cx="42" cy="42" r="35" fill="none" stroke="#e8ff47" stroke-width="7"
+                  stroke-linecap="round" stroke-dasharray="220" id="score-arc" stroke-dashoffset="220"/>
+              </svg>
+              <div class="score-num" id="score-num">—</div>
+            </div>
+            <span style="font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:.05em;">RISK SCORE</span>
+          </div>
+        </div>
+        <div id="risk-badge-row" style="margin-bottom:16px;"></div>
+        <div class="dims-grid" id="dims-grid"></div>
+        <div class="rec-box" id="rec-box" style="display:none;">
+          <div class="rec-title"><i class="ti ti-bulb"></i> Interview probes to verify these findings</div>
+          <ul class="rec-list" id="rec-list"></ul>
+        </div>
+        <div class="action-row">
+          <button class="btn-sm" onclick="copyReport()"><i class="ti ti-copy"></i> Copy Report</button>
+          <button class="btn-sm" onclick="nav('id')"><i class="ti ti-id"></i> Verify Their ID</button>
+          <button class="btn-sm" onclick="goGenQuestions()"><i class="ti ti-messages"></i> Interview Questions</button>
+          <button class="btn-sm" onclick="newScreen()"><i class="ti ti-plus"></i> New Screen</button>
+        </div>
+      </div>
+
+      <!-- ════════════════ VERIFY ID / VISA ════════════════ -->
+      <div class="screen" id="screen-id">
+        <div class="screen-title">Verify ID or visa document</div>
+        <div class="screen-sub">Upload a government-issued ID or immigration document for AI authenticity analysis.</div>
+        <div class="warn"><i class="ti ti-alert-triangle"></i><div><strong>Legal note:</strong> Under IRCA and I-9 rules, only request identity documents at the point of hire — not as a pre-screening filter. Use during onboarding or staffing agency placement verification. Always confirm legal decisions through <a href="https://www.e-verify.gov" target="_blank" style="color:var(--amber);">E-Verify</a> or <a href="https://egov.uscis.gov/casestatus/landing.do" target="_blank" style="color:var(--amber);">USCIS</a>.</div></div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-file-upload"></i> Upload document</div>
+          <div class="dropzone" id="id-dropzone">
+            <input type="file" id="id-file" accept="image/*,.pdf" onchange="handleIdFile(event)">
+            <div class="dz-icon"><i class="ti ti-id"></i></div>
+            <div class="dz-title">Drop document image here</div>
+            <div class="dz-sub">Driver's License · Passport · EAD · Green Card · H1B · SSN Card</div>
+          </div>
+          <div class="preview-strip" id="id-preview"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-forms"></i> Document details</div>
+          <div class="two-col" style="margin-bottom:12px;">
+            <div>
+              <span class="field-label">DOCUMENT TYPE</span>
+              <select class="input-field" id="id-type">
+                <option value="">Select…</option>
+                <optgroup label="Government ID">
+                  <option>US Driver's License</option>
+                  <option>US Passport</option>
+                  <option>Foreign Passport</option>
+                  <option>Social Security Card</option>
+                  <option>State ID</option>
+                </optgroup>
+                <optgroup label="Immigration / Work Auth">
+                  <option>H1B Approval Notice (I-797)</option>
+                  <option>H1B Transfer / Amendment</option>
+                  <option>EAD Card</option>
+                  <option>Green Card (I-551)</option>
+                  <option>I-140 Approval Notice</option>
+                  <option>OPT / CPT Authorization</option>
+                  <option>TN Visa</option>
+                </optgroup>
+              </select>
+            </div>
+            <div>
+              <span class="field-label">NAME ON DOCUMENT</span>
+              <input class="input-field" id="id-name" placeholder="As it appears on the document" type="text">
+            </div>
+          </div>
+          <span class="field-label">ANYTHING THAT LOOKS OFF? (OPTIONAL)</span>
+          <textarea class="input-field" id="id-notes" placeholder="e.g. expiry date looks altered, font seems wrong, employer name doesn't match…" style="min-height:60px;"></textarea>
+        </div>
+        <button class="btn-primary" id="id-btn" onclick="runIdCheck()" disabled>
+          <i class="ti ti-shield-search"></i> Verify Document
+        </button>
+        <div id="id-result" style="margin-top:18px;"></div>
+      </div>
+
+      <!-- ID LOADING -->
+      <div class="screen" id="screen-id-loading">
+        <div class="loading-wrap">
+          <div class="spinner"></div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:14px;">Analyzing document…</div>
+          <ul class="loading-steps">
+            <li id="il1" class="active">Reading document layout and structure</li>
+            <li id="il2">Checking issuing authority formatting standards</li>
+            <li id="il3">Analyzing fonts, security features, seals</li>
+            <li id="il4">Cross-checking dates, numbers, field consistency</li>
+            <li id="il5">Compiling authenticity report…</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ════════════════ INTERVIEW QUESTIONS ════════════════ -->
+      <div class="screen" id="screen-questions">
+        <div class="screen-title">Interview question generator</div>
+        <div class="screen-sub">Paste a job description and get role-specific technical, behavioral, and fraud-detection questions for that exact role.</div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-briefcase"></i> Job description *</div>
+          <textarea class="input-field" id="q-jd" placeholder="Paste the full job description here…" style="min-height:140px;"></textarea>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-settings"></i> Preferences</div>
+          <div class="two-col" style="margin-bottom:12px;">
+            <div>
+              <span class="field-label">EXPERIENCE LEVEL</span>
+              <select class="input-field" id="q-level">
+                <option>Junior (0–2 years)</option>
+                <option selected>Mid-level (3–5 years)</option>
+                <option>Senior (6–10 years)</option>
+                <option>Staff / Principal (10+ years)</option>
+                <option>Manager / Director</option>
+              </select>
+            </div>
+            <div>
+              <span class="field-label">FOCUS</span>
+              <select class="input-field" id="q-focus">
+                <option value="balanced">Balanced mix</option>
+                <option value="technical_heavy">Heavy technical</option>
+                <option value="behavioral_heavy">Heavy behavioral</option>
+                <option value="fraud_detection">Fraud detection focus</option>
+              </select>
+            </div>
+          </div>
+          <span class="field-label">SPECIFIC CONCERNS (OPTIONAL)</span>
+          <input class="input-field" id="q-concerns" placeholder="e.g. candidate seems vague about Python, unclear on actual project ownership…" type="text">
+        </div>
+        <button class="btn-primary" onclick="runQuestions()">
+          <i class="ti ti-messages"></i> Generate Interview Questions
+        </button>
+        <div id="q-result" style="margin-top:18px;"></div>
+      </div>
+
+      <!-- Q LOADING -->
+      <div class="screen" id="screen-q-loading">
+        <div class="loading-wrap">
+          <div class="spinner"></div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:14px;">Building question set…</div>
+          <ul class="loading-steps">
+            <li id="ql1" class="active">Analyzing role requirements and tech stack</li>
+            <li id="ql2">Generating technical depth questions</li>
+            <li id="ql3">Building behavioral and situational questions</li>
+            <li id="ql4">Crafting proxy and fraud detection probes</li>
+            <li id="ql5">Finalizing question set…</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ════════════════ HISTORY ════════════════ -->
+      <div class="screen" id="screen-history">
+        <div class="screen-title">Screening history</div>
+        <div class="screen-sub">All candidates screened this session. Clears when you close the browser.</div>
+        <div id="history-list">
+          <div class="empty-state"><i class="ti ti-database-off"></i><p>No screenings yet.</p></div>
+        </div>
+      </div>
+
+      <!-- ════════════════ HOW TO USE ════════════════ -->
+      <div class="screen" id="screen-guide">
+        <div class="screen-title">How to use VeraHire</div>
+        <div class="screen-sub">A complete walkthrough — bookmark this tab or share your screen when showing someone how it works.</div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-title"><i class="ti ti-info-circle"></i> What is VeraHire?</div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.8;margin-top:4px;">
+            VeraHire is an AI-powered candidate fraud screener built by <strong style="color:var(--text)">Radhika Pothuraju</strong>, a Senior Technical Recruiter with 10+ years of experience in IT and corporate staffing. Every fraud signal in this tool comes from real patterns observed in the field — fabricated resumes, proxy interviews, AI-generated applications, visa misrepresentation, and more.<br><br>
+            VeraHire uses <strong style="color:var(--text)">Claude AI (Anthropic)</strong> to analyze resumes and documents against 10 fraud dimensions, then generates targeted interview questions to verify findings in real conversations.
+          </p>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-title"><i class="ti ti-list-numbers"></i> Step-by-step workflow</div>
+          <div style="margin-top:12px;">
+            <div class="guide-step">
+              <div class="step-num">1</div>
+              <div class="step-body">
+                <div class="step-title">Receive a resume from a candidate</div>
+                <div class="step-desc">When a candidate applies or a vendor submits a profile, copy the full resume text. <strong>Also copy the job description</strong> you're hiring for — this is what makes VeraHire detect JD fabrication, the most common fraud pattern.</div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="step-num">2</div>
+              <div class="step-body">
+                <div class="step-title">Run the fraud screen</div>
+                <div class="step-desc">Paste the resume and JD into the <strong>Screen Candidate</strong> tab. Toggle which of the 10 fraud signals you want checked. Click <strong>Run Full Fraud Screen</strong> — results arrive in about 20 seconds.</div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="step-num">3</div>
+              <div class="step-body">
+                <div class="step-title">Read the risk score and dimension breakdown</div>
+                <div class="step-desc">You get a <strong>0–100 risk score</strong> and a HIGH / MEDIUM / LOW verdict. Each of the 10 fraud dimensions shows its own score with specific flags — not generic observations, but exact things found in that resume. <strong>Score above 60 = dig deeper before proceeding.</strong></div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="step-num">4</div>
+              <div class="step-body">
+                <div class="step-title">Use the interview probes</div>
+                <div class="step-desc">VeraHire generates 6 targeted questions designed to expose the specific fraud signals it found. These are not generic questions — they're built around what was actually suspicious in that resume. Use them in your phone screen or send to the hiring manager.</div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="step-num">5</div>
+              <div class="step-body">
+                <div class="step-title">Verify visa / government ID (at offer stage)</div>
+                <div class="step-desc">When a candidate is moving to offer, use the <strong>Verify ID / Visa</strong> tab to upload their H1B approval notice, EAD card, Green Card, driver's license, or passport. AI analyzes it for formatting red flags, altered dates, inconsistent fonts, and missing security features. <strong>Always confirm legal decisions through official USCIS / E-Verify channels.</strong></div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="step-num">6</div>
+              <div class="step-body">
+                <div class="step-title">Generate role-specific interview questions</div>
+                <div class="step-desc">Use the <strong>Interview Questions</strong> tab for any role. Paste the JD, choose the experience level and focus. You get four categories: Technical Depth, Real Experience Verification, Proxy/Fraud Detection, and Behavioral. Copy the full set and share with your hiring manager before the interview.</div>
+              </div>
+            </div>
+            <div class="guide-step" style="margin-bottom:0;">
+              <div class="step-num">7</div>
+              <div class="step-body">
+                <div class="step-title">Copy the report and share</div>
+                <div class="step-desc">Every screening result has a <strong>Copy Report</strong> button that gives you a clean plain-text summary. Paste it into an email to your hiring manager, into your ATS notes, or into a Slack message. It documents your due diligence.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-title"><i class="ti ti-shield-search"></i> The 10 fraud signals — what each one catches</div>
+          <table class="signal-table">
+            <tr><th>Signal</th><th>What it detects</th></tr>
+            <tr><td>JD Fabrication</td><td>Resume written to mirror the job description word-for-word rather than reflecting real experience</td></tr>
+            <tr><td>Proxy Interview</td><td>Skills that don't match claimed years, vague technical depth, someone else likely doing the interviews</td></tr>
+            <tr><td>AI / Copied Resume</td><td>ChatGPT-style language, identical bullet structure throughout, no personality or specificity</td></tr>
+            <tr><td>Fake Experience</td><td>Timeline gaps, unverifiable employers, impossible rapid promotions, titles that don't match level</td></tr>
+            <tr><td>Visa Mismatch</td><td>Sponsorship language inconsistent with claimed status, location vs authorization contradictions</td></tr>
+            <tr><td>Job-Hop Pattern</td><td>Every 4–6 months across many companies, always "contract ended" — proxy farm or performance issues</td></tr>
+            <tr><td>Skills Timeline</td><td>Claims years of experience in technology that didn't exist that long ago</td></tr>
+            <tr><td>Location Mismatch</td><td>Resume says one location, LinkedIn says another, wants remote — combined signals</td></tr>
+            <tr><td>Body Shop / Vendor</td><td>Generic formatting, coordinator-written summary, same email domain patterns across submissions</td></tr>
+            <tr><td>Rate vs Exp</td><td>Senior engineer asking below-market rate — experience may be fabricated or a large vendor cut is being taken</td></tr>
+          </table>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-title"><i class="ti ti-users"></i> Who this is for</div>
+          <div class="use-case-grid">
+            <div class="use-case-card">
+              <div class="uc-icon"><i class="ti ti-building"></i></div>
+              <div class="uc-title">Corporate Recruiters</div>
+              <div class="uc-desc">Screen candidates before presenting to hiring managers. Save their time and protect your credibility.</div>
+            </div>
+            <div class="use-case-card">
+              <div class="uc-icon"><i class="ti ti-network"></i></div>
+              <div class="uc-title">IT Staffing Firms</div>
+              <div class="uc-desc">Verify vendor-submitted profiles before client submission. Catch body shop patterns early.</div>
+            </div>
+            <div class="use-case-card">
+              <div class="uc-icon"><i class="ti ti-user-check"></i></div>
+              <div class="uc-title">Hiring Managers</div>
+              <div class="uc-desc">Run a quick screen before investing time in a technical interview. Use the generated questions directly.</div>
+            </div>
+            <div class="use-case-card">
+              <div class="uc-icon"><i class="ti ti-gavel"></i></div>
+              <div class="uc-title">HR / Compliance Teams</div>
+              <div class="uc-desc">Document due diligence on visa and work authorization verification at the offer stage.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="ti ti-alert-circle"></i> Important limitations</div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.8;">
+            VeraHire is a <strong style="color:var(--text)">decision-support tool</strong>, not a final arbiter. AI analysis should complement — never replace — human judgment and proper verification processes.<br><br>
+            • Document verification findings must be confirmed through <a href="https://www.e-verify.gov" target="_blank" style="color:var(--accent3);">E-Verify</a> or <a href="https://egov.uscis.gov" target="_blank" style="color:var(--accent3);">USCIS</a> for any legal hiring decision.<br>
+            • Do not request government IDs during pre-screening — only at the offer/I-9 stage.<br>
+            • A high risk score warrants investigation, not automatic rejection.<br>
+            • VeraHire does not store any candidate data. Everything runs in your browser session only.
+          </p>
+        </div>
+
+      </div><!-- end screen-guide -->
+
+      <!-- ════════════════ HISTORY ════════════════ -->
+      <!-- already defined above -->
+
+    </div><!-- end content -->
+  </div><!-- end main -->
+</div><!-- end app-wrap -->
+
+<script>
+// ── PASSWORD ──
+// To change your password: find the line below and replace 'VeraHire2025!' with your new password.
+const APP_PASSWORD = 'VeraHire2025!';
+
+function doLogin() {
+  const val = document.getElementById('pwd-input').value;
+  if (val === APP_PASSWORD) {
+    document.getElementById('login-wrap').style.display = 'none';
+    document.getElementById('app-wrap').style.display = 'block';
+    sessionStorage.setItem('vh_auth', '1');
+  } else {
+    const err = document.getElementById('login-error');
+    err.style.display = 'flex';
+    err.style.alignItems = 'center';
+    err.style.gap = '6px';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('vh_auth');
+  document.getElementById('app-wrap').style.display = 'none';
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('pwd-input').value = '';
+}
+
+// Auto-unlock if already authenticated this session
+if (sessionStorage.getItem('vh_auth') === '1') {
+  document.getElementById('login-wrap').style.display = 'none';
+  document.getElementById('app-wrap').style.display = 'block';
+}
+
+// ── NAV ──
+function nav(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item[data-screen]').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const nb = document.querySelector('[data-screen="' + name + '"]');
+  if (nb) nb.classList.add('active');
+}
+
+// ── SIGNALS ──
+const activeSignals = new Set(['jd_fabrication','proxy_risk','ai_resume','experience_fake','visa_mismatch','job_hopping','skills_timeline','location_mismatch','body_shop','salary_mismatch']);
+document.querySelectorAll('.chip[data-signal]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const s = chip.dataset.signal;
+    if (activeSignals.has(s)) { activeSignals.delete(s); chip.classList.remove('active'); }
+    else { activeSignals.add(s); chip.classList.add('active'); }
+  });
+});
+
+// ── LOADING ──
+function animateSteps(prefix, count, ms) {
+  for (let j=1;j<=count;j++){const e=document.getElementById(prefix+j);if(e){e.classList.remove('active','done');}}
+  let i=0;
+  function next(){
+    if(i>0){const p=document.getElementById(prefix+i);if(p){p.classList.remove('active');p.classList.add('done');}}
+    i++;
+    if(i<=count){const c=document.getElementById(prefix+i);if(c){c.classList.add('active');}setTimeout(next,ms||900);}
+  }
+  next();
+}
+function showLoading(id, stepPrefix, stepCount) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  animateSteps(stepPrefix, stepCount, 850);
+}
+
+// ── SCREEN CANDIDATE ──
+const history = [];
+let lastResult = null, lastJD = '';
+
+async function runAnalysis() {
+  const resume = document.getElementById('resume-text').value.trim();
+  const jd = document.getElementById('jd-text').value.trim();
+  const linkedin = document.getElementById('linkedin-url').value.trim();
+  const name = document.getElementById('cand-name').value.trim() || 'Candidate';
+  if (!resume) { alert('Please paste the resume text first.'); return; }
+  lastJD = jd;
+  showLoading('loading','ls',7);
+  const signals = [...activeSignals].join(', ');
+  const prompt = `You are a senior technical recruiter and fraud investigator with 10+ years of IT staffing experience. Analyze this resume and return ONLY valid JSON — no markdown, no backticks.
+
+RESUME:
+${resume}
+${jd?'\nJOB DESCRIPTION:\n'+jd:''}
+${linkedin?'\nLinkedIn: '+linkedin:''}
+
+Active signals to check: ${signals}
+
+Return:
+{
+  "overallScore":<0-100>,
+  "overallRisk":"<HIGH|MEDIUM|LOW>",
+  "summary":"<2 sentence summary of biggest concerns>",
+  "dimensions":{
+    "jd_fabrication":{"score":<0-100>,"risk":"<HIGH|MEDIUM|LOW>","flags":["<finding>","<finding>"],"notes":"<brief>"},
+    "proxy_risk":{"score":<0-100>,"risk":"<HIGH|MEDIUM|LOW>","flags":["<finding>","<finding>"],"notes":"<brief>"},
+    "ai_resume":{"score":<0-100>,"risk":"<HIGH|MEDIUM|LOW>","flags":["<finding>","<finding>"],"notes":"<brief>"},
+    "experience_fake":{"score":<0-100>,"risk":"<HIGH|MEDIUM|LOW>","flags":["<finding>","<finding>"],"notes":"<brief>"},
+    "visa_mismatch":{"score":<0-100>,"risk":"<HIGH|MEDIUM|LOW>","flags":["<finding>","<finding>"],"notes":"<brief>"},
+    "job_hopping":{"score":<0-100>,"risk":"<HIGH|MEDIUM|LOW>","flags":["<finding>","<finding>"],"notes":"<brief>"},
+    "skills_timeline":{"score":<0-100>,"risk":"<HIGH|MEDIUM|LOW>","flags":["<finding>","<finding>"],"notes":"<brief>"},
+    "location_mismatch":{"score":<0-100>,"risk":"<HIGH|MEDIUM|LOW>","flags":["<finding>","<finding>"],"notes":"<brief>"},
+    "body_shop":{"score":<0-100>,"risk":"<HIGH|MEDIUM|LOW>","flags":["<finding>","<finding>"],"notes":"<brief>"},
+    "salary_mismatch":{"score":<0-100>,"risk":"<HIGH|MEDIUM|LOW>","flags":["<finding>","<finding>"],"notes":"<brief>"}
+  },
+  "interviewProbes":["<question>","<question>","<question>","<question>","<question>","<question>"]
+}
+Only score active signals (${signals}). For others set score:0,risk:"LOW",flags:[],notes:"Not checked".
+Be specific — flag exact inconsistencies found in this resume, not generic observations.`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1500,messages:[{role:"user",content:prompt}]})});
+    const data = await resp.json();
+    const raw = data.content.map(c=>c.text||'').join('');
+    const result = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    renderResult(result, name);
+  } catch(e) { nav('screen'); alert('Something went wrong. Please try again.'); }
+}
+
+const DIM_META={
+  jd_fabrication:{label:'JD Fabrication',icon:'ti-target'},
+  proxy_risk:{label:'Proxy Interview',icon:'ti-video'},
+  ai_resume:{label:'AI / Copied Resume',icon:'ti-copy'},
+  experience_fake:{label:'Fake Experience',icon:'ti-timeline'},
+  visa_mismatch:{label:'Visa Mismatch',icon:'ti-id-badge'},
+  job_hopping:{label:'Job-Hop Pattern',icon:'ti-arrows-shuffle'},
+  skills_timeline:{label:'Skills Timeline',icon:'ti-calendar-stats'},
+  location_mismatch:{label:'Location Mismatch',icon:'ti-map-pin'},
+  body_shop:{label:'Body Shop',icon:'ti-building'},
+  salary_mismatch:{label:'Rate vs Exp',icon:'ti-currency-dollar'}
+};
+
+function renderResult(r,name){
+  lastResult={result:r,name};
+  document.getElementById('res-name').textContent=name;
+  document.getElementById('res-meta').textContent='Screened '+new Date().toLocaleTimeString();
+  const score=r.overallScore||0;
+  document.getElementById('score-num').textContent=score;
+  const arc=document.getElementById('score-arc');
+  arc.style.strokeDashoffset=220-(score/100)*220;
+  arc.style.stroke=score>=65?'#ff4d4d':score>=35?'#f59e0b':'#22c55e';
+  const rc=r.overallRisk==='HIGH'?'risk-high':r.overallRisk==='MEDIUM'?'risk-medium':'risk-low';
+  document.getElementById('risk-badge-row').innerHTML=`<span class="risk-badge ${rc}"><i class="ti ti-alert-triangle"></i> ${r.overallRisk} RISK</span><p style="margin-top:10px;font-size:13px;color:var(--muted);line-height:1.6;">${r.summary||''}</p>`;
+  const grid=document.getElementById('dims-grid');grid.innerHTML='';
+  Object.keys(DIM_META).filter(k=>activeSignals.has(k)).forEach(k=>{
+    const dim=(r.dimensions||{})[k]||{};const sc=dim.score||0;
+    const cls=sc>=65?'red':sc>=35?'amber':'green';
+    const clr=sc>=65?'var(--accent2)':sc>=35?'var(--amber)':'var(--green)';
+    const meta=DIM_META[k];
+    grid.innerHTML+=`<div class="dim-card"><div class="dim-header"><div class="dim-title"><i class="ti ${meta.icon}"></i>${meta.label}</div><div class="dim-score ${cls}">${sc}</div></div><div class="prog-wrap"><div class="prog-bar" style="width:${sc}%;background:${clr}"></div></div>${(dim.flags||[]).filter(f=>f).map(f=>`<div class="flag-item"><div class="flag-dot ${cls}"></div><span>${f}</span></div>`).join('')}${dim.notes&&dim.notes!=='Not checked'?`<div class="dim-notes">${dim.notes}</div>`:''}</div>`;
+  });
+  const probes=r.interviewProbes||[];
+  if(probes.length){document.getElementById('rec-box').style.display='block';document.getElementById('rec-list').innerHTML=probes.map(p=>`<li>${p}</li>`).join('');}
+  history.unshift({name,score,risk:r.overallRisk,time:new Date().toLocaleTimeString(),result:r});
+  renderHistory();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-result').classList.add('active');
+  document.querySelector('[data-screen="screen"]').classList.add('active');
+}
+
+// ── ID VERIFY ──
+let idFileData=null,idFileMime=null;
+function handleIdFile(evt){
+  const file=evt.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const dataUrl=e.target.result;
+    idFileMime=file.type||'image/jpeg';
+    idFileData=dataUrl.split(',')[1];
+    const preview=document.getElementById('id-preview');
+    if(file.type.startsWith('image/')){preview.innerHTML=`<img src="${dataUrl}" class="preview-thumb" alt="Doc">`;}
+    else{preview.innerHTML=`<div class="preview-doc"><i class="ti ti-file-type-pdf"></i>${file.name.substring(0,10)}…</div>`;}
+    document.getElementById('id-btn').disabled=false;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function runIdCheck(){
+  if(!idFileData){alert('Please upload a document first.');return;}
+  const docType=document.getElementById('id-type').value||'government document';
+  const candName=document.getElementById('id-name').value.trim();
+  const notes=document.getElementById('id-notes').value.trim();
+  showLoading('id-loading','il',5);
+  const textPrompt=`You are an expert in government document verification and immigration fraud detection. Analyze this ${docType} image for authenticity.
+${candName?'Name provided: '+candName:''}
+${notes?'Recruiter observations: '+notes:''}
+Check: layout, fonts, security features, date consistency, ID/case number format, photo area integrity, digital manipulation artifacts.
+Return ONLY valid JSON:
+{"verdict":"<LIKELY_AUTHENTIC|NEEDS_REVIEW|SUSPICIOUS|CANNOT_DETERMINE>","confidenceScore":<0-100>,"documentType":"<what this appears to be>","summary":"<2 sentence summary>","positiveSignals":["<finding>"],"redFlags":["<concern>"],"securityFeatures":"<present|partial|not_visible|missing>","dateConsistency":"<consistent|inconsistent|not_visible>","formatMatch":"<matches|partial|does_not_match|cannot_determine>","recommendation":"<specific action>"}`;
+  try{
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:idFileMime,data:idFileData}},{type:"text",text:textPrompt}]}]})});
+    const data=await resp.json();
+    const raw=data.content.map(c=>c.text||'').join('');
+    renderIdResult(JSON.parse(raw.replace(/```json|```/g,'').trim()));
+  }catch(e){nav('id');alert('Something went wrong. Please try again.');}
+}
+
+function renderIdResult(r){
+  nav('id');document.querySelector('[data-screen="id"]').classList.add('active');
+  const boxCls=r.verdict==='LIKELY_AUTHENTIC'?'legit':r.verdict==='SUSPICIOUS'?'suspect':'review';
+  const clr=r.verdict==='LIKELY_AUTHENTIC'?'var(--green)':r.verdict==='SUSPICIOUS'?'var(--accent2)':'var(--amber)';
+  const icon=r.verdict==='LIKELY_AUTHENTIC'?'ti-circle-check':r.verdict==='SUSPICIOUS'?'ti-circle-x':'ti-alert-triangle';
+  const label=r.verdict==='LIKELY_AUTHENTIC'?'Likely Authentic':r.verdict==='SUSPICIOUS'?'Suspicious — Review Carefully':r.verdict==='CANNOT_DETERMINE'?'Cannot Determine':'Needs Further Review';
+  const rows=[['Document type',r.documentType],['Security features',r.securityFeatures],['Date consistency',r.dateConsistency],['Format match',r.formatMatch],['Confidence',(r.confidenceScore||'—')+'/100']].filter(([,v])=>v).map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;"><span style="color:var(--muted)">${k}</span><span style="font-weight:600">${v}</span></div>`).join('');
+  let html=`<div class="id-result-box ${boxCls}"><div class="verdict-title" style="color:${clr}"><i class="ti ${icon}"></i>${label}</div><div style="font-size:12px;line-height:1.6;color:var(--muted);margin-top:6px;">${r.summary||''}</div></div><div class="card" style="margin-bottom:12px;">${rows}</div>`;
+  if((r.positiveSignals||[]).length){html+=`<div class="card" style="margin-bottom:12px;"><div class="card-title" style="color:var(--green)"><i class="ti ti-circle-check"></i> What looks correct</div>${r.positiveSignals.map(s=>`<div class="flag-item"><div class="flag-dot green"></div><span>${s}</span></div>`).join('')}</div>`;}
+  if((r.redFlags||[]).length){html+=`<div class="card" style="margin-bottom:12px;"><div class="card-title" style="color:var(--accent2)"><i class="ti ti-alert-triangle"></i> Red flags</div>${r.redFlags.map(f=>`<div class="flag-item"><div class="flag-dot red"></div><span>${f}</span></div>`).join('')}</div>`;}
+  if(r.recommendation){html+=`<div class="rec-box"><div class="rec-title"><i class="ti ti-arrow-right"></i> Recruiter action</div><p style="font-size:13px;line-height:1.6;">${r.recommendation}</p></div>`;}
+  const el=document.getElementById('id-result');el.innerHTML=html;el.style.display='block';el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── INTERVIEW QUESTIONS ──
+function goGenQuestions(){if(lastJD)document.getElementById('q-jd').value=lastJD;nav('questions');}
+
+async function runQuestions(){
+  const jd=document.getElementById('q-jd').value.trim();
+  const level=document.getElementById('q-level').value;
+  const focus=document.getElementById('q-focus').value;
+  const concerns=document.getElementById('q-concerns').value.trim();
+  if(!jd){alert('Please paste a job description first.');return;}
+  showLoading('q-loading','ql',5);
+  const prompt=`You are a senior technical recruiter. Generate an interview question set for this role.
+JOB DESCRIPTION: ${jd}
+Level: ${level} | Focus: ${focus}${concerns?'\nConcerns: '+concerns:''}
+Return ONLY valid JSON:
+{"roleTitle":"<title>","techStack":["<tech>","<tech>","<tech>"],"categories":[{"name":"Technical Depth","color":"accent3","icon":"ti-code","description":"Questions that separate people who did the work from people who read about it","questions":["<q>","<q>","<q>","<q>","<q>"]},{"name":"Real Experience Verification","color":"amber","icon":"ti-timeline","description":"Questions to surface specific verifiable details only real experience provides","questions":["<q>","<q>","<q>","<q>"]},{"name":"Proxy / Fraud Detection","color":"accent2","icon":"ti-shield-search","description":"Questions a proxy or memorized-answer candidate will struggle with","questions":["<q>","<q>","<q>","<q>"]},{"name":"Behavioral / Situational","color":"green","icon":"ti-users","description":"STAR-format questions for judgment, collaboration, and culture fit","questions":["<q>","<q>","<q>","<q>"]}],"redFlagAnswers":["<pattern>","<pattern>","<pattern>"],"goodSignalAnswers":["<pattern>","<pattern>","<pattern>"]}
+Make questions specific to the actual tech stack and responsibilities. Proxy detection questions must be things only someone who genuinely did the work would answer naturally.`;
+  try{
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1500,messages:[{role:"user",content:prompt}]})});
+    const data=await resp.json();
+    const raw=data.content.map(c=>c.text||'').join('');
+    renderQuestions(JSON.parse(raw.replace(/```json|```/g,'').trim()));
+  }catch(e){nav('questions');alert('Something went wrong. Please try again.');}
+}
+
+function renderQuestions(r){
+  nav('questions');document.querySelector('[data-screen="questions"]').classList.add('active');
+  const colorMap={accent3:'var(--accent3)',amber:'var(--amber)',accent2:'var(--accent2)',green:'var(--green)'};
+  let html=`<div style="margin-bottom:16px;"><div style="font-size:18px;font-weight:800;margin-bottom:6px;">${r.roleTitle||'Role'}</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${(r.techStack||[]).map(t=>`<span style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:3px 9px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--muted);">${t}</span>`).join('')}</div></div>`;
+  (r.categories||[]).forEach(cat=>{
+    const clr=colorMap[cat.color]||'var(--accent3)';
+    html+=`<div class="q-block"><div class="q-cat" style="color:${clr}"><i class="ti ${cat.icon||'ti-message'}"></i>${cat.name}</div><div style="font-size:11px;color:var(--muted);margin-bottom:10px;">${cat.description||''}</div>${(cat.questions||[]).map((q,i)=>`<div class="q-item"><span class="q-num">${i+1}.</span><span>${q}</span></div>`).join('')}</div>`;
+  });
+  if((r.redFlagAnswers||[]).length){html+=`<div class="card" style="margin-bottom:12px;"><div class="card-title" style="color:var(--accent2)"><i class="ti ti-flag"></i> Answer patterns that should raise red flags</div>${r.redFlagAnswers.map(f=>`<div class="flag-item"><div class="flag-dot red"></div><span style="font-size:12px;">${f}</span></div>`).join('')}</div>`;}
+  if((r.goodSignalAnswers||[]).length){html+=`<div class="card" style="margin-bottom:12px;"><div class="card-title" style="color:var(--green)"><i class="ti ti-circle-check"></i> Answer patterns that signal genuine experience</div>${r.goodSignalAnswers.map(f=>`<div class="flag-item"><div class="flag-dot green"></div><span style="font-size:12px;">${f}</span></div>`).join('')}</div>`;}
+  const el=document.getElementById('q-result');el.innerHTML=html;
+  const btn=document.createElement('button');btn.className='btn-sm';btn.style.marginTop='12px';
+  btn.innerHTML='<i class="ti ti-copy"></i> Copy All Questions';
+  btn.onclick=()=>{let txt=(r.roleTitle||'Role')+' — Interview Questions\n\n';(r.categories||[]).forEach(cat=>{txt+=cat.name.toUpperCase()+'\n';(cat.questions||[]).forEach((q,i)=>txt+=`${i+1}. ${q}\n`);txt+='\n';});navigator.clipboard.writeText(txt).then(()=>alert('Questions copied!'));};
+  el.appendChild(btn);
+}
+
+// ── HISTORY ──
+function renderHistory(){
+  const list=document.getElementById('history-list');
+  if(!history.length){list.innerHTML='<div class="empty-state"><i class="ti ti-database-off"></i><p>No screenings yet.</p></div>';return;}
+  list.innerHTML=history.map((h,i)=>{
+    const c=h.risk==='HIGH'?'#ff4d4d':h.risk==='MEDIUM'?'#f59e0b':'#22c55e';
+    return `<div class="history-item" onclick="reloadResult(${i})"><div><div class="hi-name">${h.name}</div><div class="hi-meta">${h.time} · Score: ${h.score}/100</div></div><span class="risk-badge" style="background:${c}22;color:${c};border:1px solid ${c}44;">${h.risk}</span></div>`;
+  }).join('');
+}
+function reloadResult(i){renderResult(history[i].result,history[i].name);}
+function newScreen(){['resume-text','jd-text','linkedin-url','cand-name'].forEach(id=>document.getElementById(id).value='');nav('screen');}
+function copyReport(){
+  if(!lastResult)return;
+  const r=lastResult.result;
+  let txt=`VERAHIRE FRAUD SCREEN REPORT\nCandidate: ${lastResult.name} — ${new Date().toLocaleString()}\nOverall: ${r.overallRisk} RISK (${r.overallScore}/100)\n${r.summary}\n\n`;
+  Object.keys(DIM_META).forEach(k=>{if(!activeSignals.has(k))return;const d=(r.dimensions||{})[k]||{};txt+=`${DIM_META[k].label.toUpperCase()} — Score: ${d.score||0} (${d.risk||''})\n`;(d.flags||[]).forEach(f=>txt+=`  • ${f}\n`);txt+='\n';});
+  txt+='INTERVIEW PROBES:\n';(r.interviewProbes||[]).forEach((p,i)=>txt+=`${i+1}. ${p}\n`);
+  navigator.clipboard.writeText(txt).then(()=>alert('Report copied!'));
+}
+</script>
+</body>
+</html>
+<!-- VeraHire Proxy Detection Patch — appended -->
+<script>
+// ══════════════════════════════════════════
+// PROXY DETECTION — LIVE CHECKLIST + POST INTERVIEW
+// ══════════════════════════════════════════
+
+// Inject nav items
+document.addEventListener('DOMContentLoaded', function() {
+  const sidebar = document.querySelector('.sidebar');
+  const navLabel = sidebar.querySelector('.nav-label');
+
+  // Insert after existing nav items, before sidebar-note
+  const proxyNavHTML = `
+    <button class="nav-item" data-screen="proxy-live" onclick="nav('proxy-live')"><i class="ti ti-video"></i> Live Interview Check</button>
+    <button class="nav-item" data-screen="proxy-post" onclick="nav('proxy-post')"><i class="ti ti-clipboard-check"></i> Post-Interview Score</button>
+  `;
+  const sidebarNote = sidebar.querySelector('.sidebar-note');
+  sidebarNote.insertAdjacentHTML('beforebegin', proxyNavHTML);
+
+  // Inject screens into content
+  const content = document.querySelector('.content');
+
+  // ── LIVE CHECKLIST SCREEN ──
+  content.insertAdjacentHTML('beforeend', `
+    <div class="screen" id="screen-proxy-live">
+      <div class="screen-title">Live interview checklist</div>
+      <div class="screen-sub">Keep this open on a second screen during the video call. Check signals as you observe them in real time.</div>
+
+      <div class="tip"><i class="ti ti-bulb"></i> Run this alongside your video call. The more boxes you check, the stronger the proxy signal. At 3+ red flags — pause the interview and verify identity.</div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title"><i class="ti ti-user"></i> Candidate being interviewed</div>
+        <input class="input-field" id="live-cand-name" placeholder="Candidate name" type="text" style="margin-bottom:10px;">
+        <input class="input-field" id="live-role" placeholder="Role being interviewed for" type="text">
+      </div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title" style="color:var(--accent2);"><i class="ti ti-flag"></i> Before the call starts</div>
+        ${liveCheckItem('lc1', 'red', 'Requested video — did they turn it ON?', 'Refusing video or "camera broken" is a strong proxy signal. Require it as standard process.')}
+        ${liveCheckItem('lc2', 'red', 'Asked them to show photo ID to camera', 'Say it is standard onboarding process. A proxy cannot produce the real candidate\'s ID.')}
+        ${liveCheckItem('lc3', 'amber', 'Photo on screen matches resume / LinkedIn photo', 'Compare to any photo you have. Proxy will look different from the person who submitted the profile.')}
+      </div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title" style="color:var(--amber);"><i class="ti ti-ear"></i> During the conversation</div>
+        ${liveCheckItem('lc4', 'red', 'Background noise — call center, whispering, echo', 'Multiple voices, keyboard sounds, someone feeding answers in the background.')}
+        ${liveCheckItem('lc5', 'red', 'Unusual delay before EVERY answer (2-4 seconds consistently)', 'Real candidates think and answer. Proxies pause to receive the answer from someone else nearby.')}
+        ${liveCheckItem('lc6', 'amber', 'Asked them to share screen — did they do it?', 'Ask to open their LinkedIn or a project. Proxies cannot access the real candidate\'s accounts.')}
+        ${liveCheckItem('lc7', 'amber', 'Communication style inconsistent with resume (written vs spoken)', 'Polished written English but very different spoken communication. Someone else wrote the resume.')}
+        ${liveCheckItem('lc8', 'amber', 'Agreed with something technically incorrect you said on purpose', 'State something slightly wrong about their claimed tech. Real experts correct you. Proxies agree.')}
+      </div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title" style="color:var(--accent3);"><i class="ti ti-code"></i> Technical verification</div>
+        ${liveCheckItem('lc9', 'red', 'Cannot answer rapid simple question naturally', 'Ask something basic fast. Real engineers answer instantly. Proxies pause to relay the question.')}
+        ${liveCheckItem('lc10', 'red', 'Cannot name their hiring manager or team structure from a past role', 'Ask: "Who was your manager at [Company]?" Real candidates know immediately.')}
+        ${liveCheckItem('lc11', 'amber', 'Vague on specifics — no project names, no team sizes, no real details', 'Generic answers to "tell me about a project" — no specifics only real experience provides.')}
+        ${liveCheckItem('lc12', 'amber', 'Skills depth does not match claimed years of experience', 'Someone claiming 8 years of Java cannot explain a basic OOP concept clearly.')}
+      </div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title"><i class="ti ti-notes"></i> Notes during call</div>
+        <textarea class="input-field" id="live-notes" placeholder="Write anything suspicious as it happens — exact quotes, hesitations, specific moments…" style="min-height:90px;"></textarea>
+      </div>
+
+      <button class="btn-primary" onclick="scoreLiveChecklist()" style="margin-bottom:14px;">
+        <i class="ti ti-shield-search"></i> Calculate Proxy Risk Score
+      </button>
+
+      <div id="live-result"></div>
+    </div>
+  `);
+
+  // ── POST INTERVIEW SCREEN ──
+  content.insertAdjacentHTML('beforeend', `
+    <div class="screen" id="screen-proxy-post">
+      <div class="screen-title">Post-interview proxy assessment</div>
+      <div class="screen-sub">Fill this in immediately after the interview while details are fresh. VeraHire scores the proxy risk based on what you observed.</div>
+
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title"><i class="ti ti-user"></i> Interview details</div>
+        <div class="two-col" style="margin-bottom:10px;">
+          <div>
+            <span class="field-label">CANDIDATE NAME</span>
+            <input class="input-field" id="post-name" placeholder="Candidate name" type="text">
+          </div>
+          <div>
+            <span class="field-label">ROLE</span>
+            <input class="input-field" id="post-role" placeholder="Role interviewed for" type="text">
+          </div>
+        </div>
+        <span class="field-label">DATE & TIME</span>
+        <input class="input-field" id="post-date" type="datetime-local">
+      </div>
+
+      ${postQuestion('pq1', 'Was the interview conducted on VIDEO?',
+        [['yes_video','Yes — video on throughout'],['partial','Partially — turned off at times'],['no_video','No — audio only'],['refused','Refused to turn on camera']])}
+      ${postQuestion('pq2', 'Did you verify photo ID?',
+        [['yes_matched','Yes — ID shown, matched candidate'],['yes_nomatch','Yes — ID shown, looked different'],['not_asked','Did not ask'],['refused_id','Asked, they refused or made excuse']])}
+      ${postQuestion('pq3', 'How was the response timing throughout the interview?',
+        [['natural','Natural — immediate, varied, conversational'],['slight_delay','Slight delays on harder questions (normal)'],['consistent_delay','Consistent 2-4 second delay on ALL questions'],['very_delayed','Very long delays, clearly receiving answers']])}
+      ${postQuestion('pq4', 'Background environment during the call?',
+        [['clean','Clean — home or office, no issues'],['some_noise','Some background noise, normal'],['suspicious','Suspicious — multiple voices, whispering, call center sounds'],['not_video','Could not observe — audio only']])}
+      ${postQuestion('pq5', 'How did they handle your screen share request?',
+        [['shared_fine','Shared screen willingly, no issues'],['hesitated','Hesitated but eventually shared'],['technical_issues','Claimed technical issues, never shared'],['not_asked_ss','Did not ask for screen share']])}
+      ${postQuestion('pq6', 'Technical depth vs claimed experience — how did it match?',
+        [['strong_match','Strong match — answered with real depth and specifics'],['adequate','Adequate — knew the basics, some gaps'],['weak','Weak — vague answers, could not explain concepts clearly'],['very_weak','Very weak — could not answer basic questions for their claimed level']])}
+      ${postQuestion('pq7', 'When you asked about a specific past employer (manager name, team structure)?',
+        [['answered_well','Answered immediately and specifically'],['some_detail','Answered but vague on details'],['could_not_recall','Could not recall basic details'],['not_asked_emp','Did not ask this']])}
+      ${postQuestion('pq8', 'Communication style vs resume quality?',
+        [['consistent','Consistent — written and spoken communication matched'],['slight_gap','Slight gap — understandable'],['large_gap','Large gap — very polished resume, poor verbal communication'],['na_comm','Could not assess']])}
+
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title"><i class="ti ti-notes"></i> Additional observations</div>
+        <textarea class="input-field" id="post-notes" placeholder="Anything else that felt off — specific moments, quotes, gut instincts worth documenting…" style="min-height:90px;"></textarea>
+      </div>
+
+      <button class="btn-primary" onclick="runPostAssessment()">
+        <i class="ti ti-shield-search"></i> Generate Proxy Risk Assessment
+      </button>
+
+      <div id="post-result" style="margin-top:18px;"></div>
+    </div>
+  `);
+
+  // Wire up live checklist checkboxes
+  document.querySelectorAll('.live-check').forEach(cb => {
+    cb.addEventListener('change', updateLiveCount);
+  });
+});
+
+// ── HELPERS ──
+function liveCheckItem(id, severity, label, hint) {
+  const color = severity === 'red' ? 'var(--accent2)' : severity === 'amber' ? 'var(--amber)' : 'var(--green)';
+  const dotColor = severity === 'red' ? '#ff4d4d' : severity === 'amber' ? '#f59e0b' : '#22c55e';
+  return `
+    <div class="flag-item" id="lci-${id}" style="margin-bottom:8px;cursor:pointer;" onclick="toggleCheck('${id}')">
+      <div style="width:18px;height:18px;border-radius:4px;border:2px solid ${dotColor};background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;" id="cb-${id}">
+        <i class="ti ti-check" style="font-size:11px;color:${dotColor};display:none;" id="cbicon-${id}"></i>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:600;color:var(--text);">${label}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${hint}</div>
+      </div>
+      <span style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:${color};flex-shrink:0;">${severity.toUpperCase()}</span>
+    </div>`;
+}
+
+function postQuestion(id, question, options) {
+  const optionsHTML = options.map(([val, label]) =>
+    `<button type="button" class="post-opt" data-q="${id}" data-val="${val}"
+      style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;text-align:left;"
+      onclick="selectPostOpt('${id}','${val}',this)">${label}</button>`
+  ).join('');
+  return `
+    <div class="card" style="margin-bottom:12px;" id="pq-card-${id}">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px;">${question}</div>
+      <div style="display:flex;flex-direction:column;gap:7px;">${optionsHTML}</div>
+    </div>`;
+}
+
+// ── LIVE CHECKLIST LOGIC ──
+const checkedItems = new Set();
+const itemSeverity = {
+  lc1:'red',lc2:'red',lc3:'amber',lc4:'red',lc5:'red',
+  lc6:'amber',lc7:'amber',lc8:'amber',lc9:'red',lc10:'red',lc11:'amber',lc12:'amber'
+};
+
+function toggleCheck(id) {
+  const cb = document.getElementById('cb-' + id);
+  const icon = document.getElementById('cbicon-' + id);
+  const item = document.getElementById('lci-' + id);
+  const sev = itemSeverity[id];
+  const dotColor = sev === 'red' ? '#ff4d4d' : '#f59e0b';
+
+  if (checkedItems.has(id)) {
+    checkedItems.delete(id);
+    cb.style.background = 'transparent';
+    icon.style.display = 'none';
+    item.style.background = 'var(--surface2)';
+  } else {
+    checkedItems.add(id);
+    cb.style.background = dotColor;
+    icon.style.display = 'block';
+    item.style.background = sev === 'red' ? 'rgba(255,77,77,0.08)' : 'rgba(245,158,11,0.08)';
+  }
+  updateLiveCount();
+}
+
+function updateLiveCount() {
+  const redFlags = [...checkedItems].filter(id => itemSeverity[id] === 'red').length;
+  const amberFlags = [...checkedItems].filter(id => itemSeverity[id] === 'amber').length;
+  // live counter could go here
+}
+
+function scoreLiveChecklist() {
+  const redFlags = [...checkedItems].filter(id => itemSeverity[id] === 'red').length;
+  const amberFlags = [...checkedItems].filter(id => itemSeverity[id] === 'amber').length;
+  const notes = document.getElementById('live-notes').value.trim();
+  const candName = document.getElementById('live-cand-name').value.trim() || 'Candidate';
+  const role = document.getElementById('live-role').value.trim() || 'Role';
+
+  const score = Math.min(100, (redFlags * 18) + (amberFlags * 8));
+  const risk = score >= 55 ? 'HIGH' : score >= 25 ? 'MEDIUM' : 'LOW';
+
+  const checkedLabels = {
+    lc1: 'Refused or avoided video',
+    lc2: 'Could not show photo ID',
+    lc3: 'Photo did not match profile',
+    lc4: 'Suspicious background noise / whispering',
+    lc5: 'Consistent unnatural delay on all answers',
+    lc6: 'Would not or could not share screen',
+    lc7: 'Communication style inconsistent with resume',
+    lc8: 'Agreed with technically incorrect statement',
+    lc9: 'Failed rapid simple technical question',
+    lc10: 'Could not name manager or team from past role',
+    lc11: 'Vague on all specifics — no real project details',
+    lc12: 'Skill depth far below claimed experience level'
+  };
+
+  const flaggedItems = [...checkedItems].map(id => checkedLabels[id]).filter(Boolean);
+
+  const verdict = score >= 55
+    ? '🚨 Strong proxy signals detected. Do not proceed without identity verification.'
+    : score >= 25
+    ? '⚠️ Some proxy signals present. Request photo ID and a technical take-home before advancing.'
+    : '✅ Low proxy risk based on observed signals. Proceed normally.';
+
+  const rc = risk === 'HIGH' ? 'risk-high' : risk === 'MEDIUM' ? 'risk-medium' : 'risk-low';
+  const clr = risk === 'HIGH' ? 'var(--accent2)' : risk === 'MEDIUM' ? 'var(--amber)' : 'var(--green)';
+
+  let html = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-top:4px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div>
+          <div style="font-size:18px;font-weight:800;">${candName}</div>
+          <div style="font-size:12px;color:var(--muted);">${role} · Live interview · ${new Date().toLocaleTimeString()}</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:32px;font-weight:800;color:${clr};">${score}</div>
+          <div style="font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;">PROXY SCORE</div>
+        </div>
+      </div>
+      <span class="risk-badge ${rc}" style="margin-bottom:14px;display:inline-flex;"><i class="ti ti-alert-triangle"></i> ${risk} PROXY RISK</span>
+      <div style="font-size:13px;line-height:1.7;margin:12px 0;padding:12px 14px;background:var(--surface2);border-radius:9px;">${verdict}</div>`;
+
+  if (flaggedItems.length) {
+    html += `<div style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Signals observed</div>`;
+    html += flaggedItems.map(f => `<div class="flag-item" style="margin-bottom:6px;"><div class="flag-dot red"></div><span style="font-size:12px;">${f}</span></div>`).join('');
+  }
+
+  if (notes) {
+    html += `<div style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin:12px 0 6px;">Your notes</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;padding:10px 12px;background:var(--surface2);border-radius:8px;">${notes}</div>`;
+  }
+
+  // Recommendations
+  const recs = score >= 55
+    ? ['Do NOT advance this candidate without in-person or verified video identity check','Request government-issued photo ID before any next step','Flag to hiring manager with this report','Consider re-interviewing with a technical take-home test first']
+    : score >= 25
+    ? ['Request a short technical assessment before next round','Ask for photo ID at start of next call','Probe deeper on the specific signals you checked above']
+    : ['No immediate action required — proceed with normal process','Keep observations on file for reference'];
+
+  html += `<div class="rec-box" style="margin-top:14px;"><div class="rec-title"><i class="ti ti-arrow-right"></i> Recommended actions</div><ul class="rec-list">${recs.map(r=>`<li>${r}</li>`).join('')}</ul></div>`;
+
+  html += `<button class="btn-sm" style="margin-top:12px;" onclick="copyLiveReport('${candName}','${role}',${score},'${risk}')"><i class="ti ti-copy"></i> Copy Report</button>`;
+  html += `</div>`;
+
+  document.getElementById('live-result').innerHTML = html;
+  document.getElementById('live-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Save to history
+  history.unshift({ name: candName + ' (Live)', score, risk, time: new Date().toLocaleTimeString(), result: { overallScore: score, overallRisk: risk, summary: verdict, dimensions: {}, interviewProbes: recs } });
+  renderHistory();
+}
+
+function copyLiveReport(name, role, score, risk) {
+  const flags = [...checkedItems].map(id => ({
+    lc1:'Refused video',lc2:'Could not show ID',lc3:'Photo mismatch',
+    lc4:'Suspicious background noise',lc5:'Consistent answer delays',
+    lc6:'Would not share screen',lc7:'Communication inconsistency',
+    lc8:'Agreed with incorrect statement',lc9:'Failed rapid question',
+    lc10:'Could not name past manager',lc11:'Vague on all specifics',
+    lc12:'Skill depth mismatch'
+  }[id])).filter(Boolean);
+  const notes = document.getElementById('live-notes').value.trim();
+  let txt = `VERAHIRE LIVE INTERVIEW PROXY REPORT\nCandidate: ${name} — ${role}\nDate: ${new Date().toLocaleString()}\nProxy Risk Score: ${score}/100 (${risk})\n\nSignals observed:\n`;
+  flags.forEach(f => txt += `  • ${f}\n`);
+  if (notes) txt += `\nNotes:\n${notes}\n`;
+  navigator.clipboard.writeText(txt).then(() => alert('Report copied!'));
+}
+
+// ── POST INTERVIEW LOGIC ──
+const postAnswers = {};
+
+function selectPostOpt(qId, val, btn) {
+  postAnswers[qId] = val;
+  document.querySelectorAll(`.post-opt[data-q="${qId}"]`).forEach(b => {
+    b.style.background = 'var(--surface2)';
+    b.style.borderColor = 'var(--border)';
+    b.style.color = 'var(--muted)';
+  });
+  btn.style.background = 'rgba(232,255,71,0.1)';
+  btn.style.borderColor = 'rgba(232,255,71,0.4)';
+  btn.style.color = 'var(--accent)';
+}
+
+async function runPostAssessment() {
+  const name = document.getElementById('post-name').value.trim() || 'Candidate';
+  const role = document.getElementById('post-role').value.trim() || 'Role';
+  const notes = document.getElementById('post-notes').value.trim();
+
+  if (Object.keys(postAnswers).length < 4) {
+    alert('Please answer at least 4 questions before generating the assessment.');
+    return;
+  }
+
+  // Score locally first
+  const riskMap = {
+    pq1: { yes_video: 0, partial: 10, no_video: 20, refused: 35 },
+    pq2: { yes_matched: 0, yes_nomatch: 30, not_asked: 5, refused_id: 35 },
+    pq3: { natural: 0, slight_delay: 5, consistent_delay: 25, very_delayed: 40 },
+    pq4: { clean: 0, some_noise: 5, suspicious: 30, not_video: 10 },
+    pq5: { shared_fine: 0, hesitated: 10, technical_issues: 20, not_asked_ss: 5 },
+    pq6: { strong_match: 0, adequate: 8, weak: 22, very_weak: 35 },
+    pq7: { answered_well: 0, some_detail: 8, could_not_recall: 22, not_asked_emp: 5 },
+    pq8: { consistent: 0, slight_gap: 5, large_gap: 22, na_comm: 0 }
+  };
+
+  let rawScore = 0;
+  let answeredCount = 0;
+  Object.entries(postAnswers).forEach(([q, v]) => {
+    if (riskMap[q] && riskMap[q][v] !== undefined) {
+      rawScore += riskMap[q][v];
+      answeredCount++;
+    }
+  });
+
+  const score = Math.min(100, Math.round((rawScore / (answeredCount * 35)) * 100));
+  const risk = score >= 60 ? 'HIGH' : score >= 30 ? 'MEDIUM' : 'LOW';
+
+  // Now use AI to generate a narrative
+  const answerSummary = Object.entries(postAnswers).map(([q, v]) => `${q}: ${v}`).join(', ');
+
+  const prompt = `You are a senior technical recruiter analyzing a post-interview proxy fraud assessment. Based on the answers below, write a brief professional analysis.
+
+Candidate: ${name}
+Role: ${role}
+Calculated proxy risk score: ${score}/100 (${risk})
+Interview responses: ${answerSummary}
+${notes ? 'Recruiter notes: ' + notes : ''}
+
+Return ONLY valid JSON:
+{
+  "summary": "<2-3 sentence plain English analysis of what the signals suggest>",
+  "topConcerns": ["<specific concern based on their answers>", "<concern>", "<concern>"],
+  "recommendations": ["<specific action>", "<action>", "<action>"],
+  "verdict": "<one sentence final recommendation — proceed, proceed with caution, or do not proceed>"
+}`;
+
+  // Show mini loading
+  document.getElementById('post-result').innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:12px;"><div class="spinner" style="margin:0 auto 12px;"></div>Generating assessment…</div>`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 600, messages: [{ role: "user", content: prompt }] })
+    });
+    const data = await resp.json();
+    const raw = data.content.map(c => c.text || '').join('');
+    const ai = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    renderPostResult(name, role, score, risk, ai);
+  } catch(e) {
+    renderPostResult(name, role, score, risk, {
+      summary: 'Assessment based on your responses above.',
+      topConcerns: [],
+      recommendations: score >= 60 ? ['Do not advance without identity verification','Flag to hiring manager','Consider re-interview with take-home test'] : score >= 30 ? ['Request photo ID at next step','Add technical assessment','Note concerns in ATS'] : ['Proceed with normal process'],
+      verdict: score >= 60 ? 'Do not proceed without further identity verification.' : score >= 30 ? 'Proceed with caution — verify identity before advancing.' : 'Low proxy risk — safe to proceed.'
+    });
+  }
+}
+
+function renderPostResult(name, role, score, risk, ai) {
+  const rc = risk === 'HIGH' ? 'risk-high' : risk === 'MEDIUM' ? 'risk-medium' : 'risk-low';
+  const clr = risk === 'HIGH' ? 'var(--accent2)' : risk === 'MEDIUM' ? 'var(--amber)' : 'var(--green)';
+
+  let html = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div>
+          <div style="font-size:18px;font-weight:800;">${name}</div>
+          <div style="font-size:12px;color:var(--muted);">${role} · Post-interview · ${new Date().toLocaleTimeString()}</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:32px;font-weight:800;color:${clr};">${score}</div>
+          <div style="font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;">PROXY SCORE</div>
+        </div>
+      </div>
+
+      <span class="risk-badge ${rc}" style="margin-bottom:14px;display:inline-flex;">
+        <i class="ti ti-alert-triangle"></i> ${risk} PROXY RISK
+      </span>
+
+      <div style="font-size:13px;line-height:1.7;margin:12px 0;padding:12px 14px;background:var(--surface2);border-radius:9px;font-weight:600;color:${clr};">
+        ${ai.verdict || ''}
+      </div>
+
+      <div style="font-size:13px;line-height:1.7;margin:10px 0;color:var(--muted);">${ai.summary || ''}</div>`;
+
+  if ((ai.topConcerns || []).length) {
+    html += `<div style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;">Top concerns</div>`;
+    html += ai.topConcerns.map(c => `<div class="flag-item" style="margin-bottom:6px;"><div class="flag-dot red"></div><span style="font-size:12px;">${c}</span></div>`).join('');
+  }
+
+  if ((ai.recommendations || []).length) {
+    html += `<div class="rec-box" style="margin-top:14px;"><div class="rec-title"><i class="ti ti-arrow-right"></i> Recommended actions</div><ul class="rec-list">${ai.recommendations.map(r=>`<li>${r}</li>`).join('')}</ul></div>`;
+  }
+
+  html += `<div class="action-row" style="margin-top:14px;">
+    <button class="btn-sm" onclick="copyPostReport('${name}','${role}',${score},'${risk}','${(ai.verdict||'').replace(/'/g,'')}')"><i class="ti ti-copy"></i> Copy Report</button>
+    <button class="btn-sm" onclick="nav('proxy-live')"><i class="ti ti-video"></i> Open Live Checklist</button>
+  </div></div>`;
+
+  document.getElementById('post-result').innerHTML = html;
+  document.getElementById('post-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  history.unshift({ name: name + ' (Post)', score, risk, time: new Date().toLocaleTimeString(), result: { overallScore: score, overallRisk: risk, summary: ai.summary || '', dimensions: {}, interviewProbes: ai.recommendations || [] } });
+  renderHistory();
+}
+
+function copyPostReport(name, role, score, risk, verdict) {
+  const notes = document.getElementById('post-notes').value.trim();
+  const qLabels = { pq1:'Video status', pq2:'ID verification', pq3:'Response timing', pq4:'Background environment', pq5:'Screen share', pq6:'Technical depth', pq7:'Past employer recall', pq8:'Communication consistency' };
+  let txt = `VERAHIRE POST-INTERVIEW PROXY REPORT\nCandidate: ${name} — ${role}\nDate: ${new Date().toLocaleString()}\nProxy Risk Score: ${score}/100 (${risk})\nVerdict: ${verdict}\n\nInterview observations:\n`;
+  Object.entries(postAnswers).forEach(([q, v]) => { if (qLabels[q]) txt += `  ${qLabels[q]}: ${v}\n`; });
+  if (notes) txt += `\nNotes:\n${notes}\n`;
+  navigator.clipboard.writeText(txt).then(() => alert('Report copied!'));
+}
+</script>
